@@ -4,35 +4,44 @@ function ConvertHandler() {
 
   this.getNum = function(input) {
     
-    let result = input.split(/[a-zA-Z]/).join('');
-
-    if(result.replace(/[^\/]/g, '').length >= 2) {
+    let result = input.match(/^[\d\.\/-]+/)
+    if(!result) return 1
+    
+    result = result[0]
+    
+    // Check for double fraction (more than one /)
+    let slashCount = (result.match(/\//g) || []).length
+    if(slashCount >= 2) {
       return 'invalid number'
     }
-    else if(result.replace(/[^\/.]/g, '').length >= 2) {
+    
+    // If there's a fraction
+    if(slashCount === 1) {
       const arr = result.split('/')
-      return parseFloat(parseFloat(arr[0]) / parseFloat(arr[1]))
+      if(arr.length !== 2 || !arr[0] || !arr[1]) return 'invalid number'
+      const numerator = parseFloat(arr[0])
+      const denominator = parseFloat(arr[1])
+      if(isNaN(numerator) || isNaN(denominator) || denominator === 0) {
+        return 'invalid number'
+      }
+      return numerator / denominator
     }
-    else if(result.replace(/[^\/]/g, '').length === 1) {
-      const arr = result.split('/')
-      return parseFloat(parseFloat(arr[0]) / parseFloat(arr[1]))
-    }
-    else if(result === '') {
-      return 1
-    }
-    else if(/\./g.test(result)){
-      return parseFloat(result)
-    }
-    return parseInt(result);
+    
+    // Regular number
+    const num = parseFloat(result)
+    return isNaN(num) ? 'invalid number' : num
   };
   
   this.getUnit = function(input) {    
 
-    let unit = input.match(/[^\.\d\/]/g).join('')
+    let match = input.match(/[a-zA-Z]+$/)
+    if(!match) return 'invalid unit'
+    
+    let unit = match[0]
     
     for (let i = 0; i < units.length; i++) {
-      if(units[i] === unit) {
-        if(units[i] === 'L' || units[i] === 'l') return units[i].toUpperCase()
+      if(units[i].toLowerCase() === unit.toLowerCase()) {
+        if(units[i].toLowerCase() === 'l') return 'L'
         return units[i].toLowerCase()
       }
     }
